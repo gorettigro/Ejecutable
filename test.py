@@ -73,7 +73,7 @@ for estad in data['name_stad']:
     if ven.exists:
         pass
     else:
-        ven=app.window(title="Estadísticas de compras")
+        ven=app.window(title="Estadísticas de facturas")
         if ven.exists:
             pass
         else:
