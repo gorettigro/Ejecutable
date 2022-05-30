@@ -103,9 +103,9 @@ for estad in data['name_stad']:
         app['Exportar información']['Button3'].click()
 
     confi=app.window(title="Confirmación")
-    if confi.exists:
+    if confi.exists(timeout=2):
         app['Confirmación']['Button1'].click()
 
     info=app.window(title="Información")
-    if info.exists:
+    if info.exists(timeout=2):
         app['Información']['Button'].click()
