@@ -5,16 +5,17 @@ from unicodedata import name
 import pywinauto
 import win32clipboard
 import json
+import codecs
 import os
 from time import sleep, time
 from pywinauto import application, keyboard
 
 app = application.Application()
 app.connect(path=r"C:\Program Files (x86)\Aspel\Aspel-SAE 8.0\SAEWIN80.exe")
-main=app.window(title_re='Aspel-SAE')
+main=app.window(title_re='.*Aspel-SAE.*')
 lg=app.window(title='Abrir empresa')
 
-with open("data.json", "r", encoding="utf-8") as file: 
+with codecs.open("data.json", "r", encoding="utf-8-sig") as file: 
     data = json.load(file)
     
 if lg.exists(timeout=5):
@@ -97,7 +98,7 @@ for estad in data['name_stad']:
 
     error2 = app.window(title="Error")
     
-    if error2.exists(timeout=2):
+    if error2.exists(timeout=5):
         app['Error']['Button'].click()
         app['Exportar Información']['Edit7'].type_keys("C:/Users/auditor/Desktop")
         app['Exportar información']['Button3'].click()
@@ -109,3 +110,12 @@ for estad in data['name_stad']:
     info=app.window(title="Información")
     if info.exists(timeout=2):
         app['Información']['Button'].click()
+
+    main.set_focus()
+
+keyboard.send_keys('%{F4}')
+
+confi2=app.window(title="Confirmación")
+if confi2.exists(timeout=2):
+        app['Confirmación']['Button1'].click()
+
