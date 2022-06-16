@@ -8,10 +8,10 @@ import json
 import codecs
 import os
 from time import sleep, time
-from pywinauto import application, keyboard
+from pywinauto import keyboard
+from pywinauto.application import Application
 
-app = application.Application()
-app.connect(path=r"C:\Program Files (x86)\Aspel\Aspel-SAE 8.0\SAEWIN80.exe")
+app = Application(backend="win32").connect(path=r"C:\Program Files (x86)\Aspel\Aspel-SAE 8.0\SAEWIN80.exe")
 main=app.window(title_re='.*Aspel-SAE.*')
 lg=app.window(title='Abrir empresa')
 
@@ -28,7 +28,7 @@ keyboard.send_keys('%e')
 sleep(2)
 keyboard.send_keys('^%e')
 
-main=main.child_window(title_re=".*Administrador.*")
+main2=main.child_window(title_re=".*Administrador.*")
 #main.set_focus()
 #keyboard.send_keys('^%e')
 
@@ -62,7 +62,7 @@ for estad in data['name_stad']:
 
     keyboard.send_keys('{ENTER}')
 
-    sleep(3)
+    sleep(6)
 
     error = app.window(title="Error")
     
@@ -111,7 +111,7 @@ for estad in data['name_stad']:
     if info.exists(timeout=2):
         app['Información']['Button'].click()
 
-    main.set_focus()
+    main2.set_focus()
 
 keyboard.send_keys('%{F4}')
 
