@@ -1,38 +1,96 @@
-from importlib.resources import path
-from socket import timeout
-from turtle import tilt, title
-from unicodedata import name
 import pywinauto
 import win32clipboard
 import json
 import codecs
+import psutil
+import ctypes
+import sys
 import os
+import shutil
+
 from time import sleep, time
 from pywinauto import keyboard
 from pywinauto.application import Application
-
-app = Application(backend="win32").connect(path=r"C:\Program Files (x86)\Aspel\Aspel-SAE 8.0\SAEWIN80.exe")
-main=app.window(title_re='.*Aspel-SAE.*')
-lg=app.window(title='Abrir empresa')
+from concurrent.futures import process
+from importlib.resources import path
+from socket import timeout
+from turtle import tilt, title
+from unicodedata import name
 
 with codecs.open("data.json", "r", encoding="utf-8-sig") as file: 
     data = json.load(file)
+
+folder = data['repositorio']
+
+for root, dirs, files in os.walk(folder):
+    for f in files:
+        os.unlink(os.path.join(root, f))
+    for d in dirs:
+        shutil.rmtree(os.path.join(root, d))
+
+sleep(8)
+
+PROCNAME = "SAEWIN80.exe"
+
+pid = None
+
+for proc in psutil.process_iter():
+    if proc.name() == PROCNAME:
+        pid=proc.pid
+
+if not pid:
+    print("No se ha encontrado el proceso")
+    ctypes.windll.user32.MessageBoxW(0,"No se ha encontrado el proceso","Error",1)
+    sys.exit(0)
+
+app = pywinauto.Application(backend="win32").connect(process=pid)
+main=app.window(title_re='.*Aspel.*')
+lg=app.window(title='Abrir empresa')
     
 if lg.exists(timeout=5):
     app['Abrir empresa']['Edit5'].type_keys(data['user_name'])
     app['Abrir empresa']['Edit7'].type_keys(data['password'])
     app['Abrir empresa']['Button3'].click()
 
-main.set_focus()
+if main.exists(timeout=5) and not lg.exists(timeout=5):
+    main.set_focus()
+else:
+    for i in range(15):
+        try:
+            app.set_focus()
+            keyboard.send_keys('%x')
+            keyboard.send_keys('%a')
+
+            if lg.exists(timeout=5):
+                app['Abrir empresa']['Edit5'].type_keys(data['user_name'])
+                app['Abrir empresa']['Edit7'].type_keys(data['password'])
+                app['Abrir empresa']['Button3'].click()
+            
+            main.set_focus()
+            break
+
+        except Exception as e:
+            pass
+sleep(10)
 keyboard.send_keys('%e')
-sleep(2)
+sleep(10)
 keyboard.send_keys('^%e')
 
-main2=main.child_window(title_re=".*Administrador.*")
-#main.set_focus()
-#keyboard.send_keys('^%e')
+main2=main.child_window(title_re=".*Administrador de Estadísticas.*")
 
-sleep(3)
+if main2.exists(timeout=2):
+    main2.set_focus
+else:
+    for i in range(30):
+        try:
+            app.set_focus()
+            keyboard.send_keys('^%e')
+            main2.set_focus()
+            break
+        except Exception as e:
+            pass
+
+sleep(10)
 keyboard.send_keys('^c')
 
 win32clipboard.OpenClipboard()
@@ -62,13 +120,16 @@ for estad in data['name_stad']:
 
     keyboard.send_keys('{ENTER}')
 
-    sleep(6)
+    sleep(8)
 
     error = app.window(title="Error")
     
     if error.exists(timeout=3):
         app['Error']['Button'].click()
         continue
+
+
+    sleep(10)
     
     ven=app.window(title="Estadísticas de ventas")
     if ven.exists:
@@ -90,31 +151,52 @@ for estad in data['name_stad']:
     export_info=app.window(title="Exportar información")
 
     if export_info.exists(timeout=2):
-        app['Exportar información']['Edit3'].type_keys(estad)
+        app['Exportar información']['ComboBox2'].type_keys("%{DOWN}")
+        app['Exportar información']['ComboBox2'].type_keys(data['formato'])
+        app['Exportar información']['ComboBox2'].click()
         app['Exportar información']['Button6'].click()
-        #app['Exportar Información']['Edit5'].type_keys(data['repositorio'])
-        app['Exportar Información']['Edit7'].type_keys(data['repositorio'])
+        
+        app['Exportar Información']['Edit7'].type_keys(data['repositorio'], with_spaces=True)
         app['Exportar información']['Button3'].click()
 
     error2 = app.window(title="Error")
-    
     if error2.exists(timeout=5):
         app['Error']['Button'].click()
-        app['Exportar Información']['Edit7'].type_keys("C:/Users/auditor/Desktop")
+        app['Exportar Información']['Edit7'].type_keys(data['repositorio_pre'], with_spaces=True)
         app['Exportar información']['Button3'].click()
 
     confi=app.window(title="Confirmación")
     if confi.exists(timeout=2):
         app['Confirmación']['Button1'].click()
 
+    sleep(8)
+
     info=app.window(title="Información")
     if info.exists(timeout=2):
         app['Información']['Button'].click()
+    
+    if main2.exists(timeout=2):
+        main2.set_focus
+    else:
+        for i in range(30):
+            try:
+                main.set_focus()
+                keyboard.send_keys('^%e')
+                main2.set_focus()
+                break
+            except Exception as e:
+                pass
 
-    main2.set_focus()
-
+sleep(5)
+   
 keyboard.send_keys('%{F4}')
+
+sleep(5)
 
 confi2=app.window(title="Confirmación")
 if confi2.exists(timeout=2):
         app['Confirmación']['Button1'].click()
+
+sleep(3)
+
+os.system("TASKKILL/F /IM notepad.exe")
