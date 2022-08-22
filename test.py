@@ -1,6 +1,9 @@
 import pywinauto
 import win32clipboard
 import json
+import pywinauto
+import win32clipboard
+import json
 import codecs
 import psutil
 import ctypes
@@ -16,17 +19,16 @@ from importlib.resources import path
 from socket import timeout
 from turtle import tilt, title
 from unicodedata import name
+from pathlib import Path
 
 with codecs.open("data.json", "r", encoding="utf-8-sig") as file: 
     data = json.load(file)
+print(data['repositorio'])
 
-folder = data['repositorio']
-
-for root, dirs, files in os.walk(folder):
-    for f in files:
-        os.unlink(os.path.join(root, f))
-    for d in dirs:
-        shutil.rmtree(os.path.join(root, d))
+for (dirpath,names,filename) in os.walk(data['repositorio']):
+    for f in filename:
+        if f[-3:] == "txt":
+            os.remove(f"{data['repositorio']}/{f}")
 
 sleep(8)
 
