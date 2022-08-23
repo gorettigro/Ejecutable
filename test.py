@@ -28,7 +28,10 @@ print(data['repositorio'])
 for (dirpath,names,filename) in os.walk(data['repositorio']):
     for f in filename:
         if f[-3:] == "txt":
-            os.remove(f"{data['repositorio']}/{f}")
+            try:
+                os.remove(f"{data['repositorio']}/{f}")
+            except FileNotFoundError:
+                pass
 
 sleep(8)
 
